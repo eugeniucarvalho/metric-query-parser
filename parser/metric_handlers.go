@@ -1,6 +1,6 @@
 package parser
 
-type ParseHandler = func(map[string]interface{}) (interface{}, error)
+type ParseHandler = func(Context, map[string]interface{}) (interface{}, error)
 
 var (
 	handlers = map[string]ParseHandler{}

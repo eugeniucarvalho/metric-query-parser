@@ -11,7 +11,8 @@ type QueryListener struct {
 	*BaseGrammarListener
 	ArgumentsStack []map[string]interface{}
 	Arguments      map[string]interface{}
-	Context        *MetricQueryItem
+	Context        Context
+	Metric         *MetricQueryItem
 }
 
 var (
@@ -76,9 +77,9 @@ func (ql *QueryListener) ExitHandler(ctx *HandlerContext) {
 
 	}
 
-	ql.Arguments["_context"] = ql.Context
+	ql.Arguments["$metric"] = ql.Metric
 
-	result, _ = handler(ql.Arguments)
+	result, _ = handler(ql.Context, ql.Arguments)
 
 	ql.PopArguments()
 	ql.Arguments["previous.handler.result"] = result
@@ -108,9 +109,10 @@ func (ql *QueryListener) Result() *MetricQueryItemResult {
 	}
 }
 
-func NewQueryListener(context *MetricQueryItem) *QueryListener {
+func NewQueryListener(context Context, metric *MetricQueryItem) *QueryListener {
 	return &QueryListener{
 		Context: context,
+		Metric:  metric,
 		ArgumentsStack: []map[string]interface{}{
 			{
 				"previous.handler.result": nil,
