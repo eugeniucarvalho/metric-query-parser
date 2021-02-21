@@ -10,7 +10,7 @@ func (parser *MetricQueryParser) Resolve(context Context) (result map[string]int
 
 	for prop, metric := range context.Metrics {
 		if result[prop], err = parser.ResolveMetric(context, metric); err != nil {
-			return
+			result[prop] = map[string]interface{}{"error": err}
 		}
 	}
 	return
@@ -18,9 +18,8 @@ func (parser *MetricQueryParser) Resolve(context Context) (result map[string]int
 
 func (parser *MetricQueryParser) ResolveMetric(context Context, metric *MetricQueryItem) (result interface{}, err error) {
 
-	listener := NewQueryListener(context, metric)
+	listener := NewQueryListener(context.Copy(), metric)
 	input := antlr.NewInputStream(metric.Query)
-	// input := antlr.NewInputStream(`aaa`)
 	lexer := NewGrammarLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := NewGrammarParser(stream)

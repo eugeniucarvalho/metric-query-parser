@@ -12,6 +12,7 @@ type MetricQueryItem struct {
 type MetricsMap = map[string]*MetricQueryItem
 
 type MetricQueryItemResult struct {
-	Metric interface{} `json:"metric"`
-	Value  interface{} `json:"value"`
+	Metric interface{} `json:"metric,omitempty"`
+	Value  interface{} `json:"value,omitempty"`
+	Error  interface{} `json:"error,omitempty"`
 }

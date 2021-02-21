@@ -13,6 +13,7 @@ type QueryListener struct {
 	Arguments      map[string]interface{}
 	Context        Context
 	Metric         *MetricQueryItem
+	Error          error
 }
 
 var (
@@ -48,13 +49,16 @@ var (
 )
 
 func (s *QueryListener) EnterArgument(ctx *ArgumentContext) {
+	if s.Error != nil {
+		return
+	}
 	if ctx.ID() != nil {
 		valueExpression := ctx.Value().GetChild(0)
 		for t, value := range typesList {
 			if reflect.TypeOf(valueExpression) == t {
 				name := ctx.ID().GetText()
 				s.Arguments[name] = value(valueExpression)
-				s.Arguments[fmt.Sprintf("%s.op", name)] = ctx.Operator().GetText()
+				s.Arguments[fmt.Sprintf("_$%s.op", name)] = ctx.Operator().GetText()
 				break
 			}
 		}
@@ -63,6 +67,9 @@ func (s *QueryListener) EnterArgument(ctx *ArgumentContext) {
 
 // EnterHandler is called when production handler is entered.
 func (ql *QueryListener) EnterHandler(ctx *HandlerContext) {
+	if ql.Error != nil {
+		return
+	}
 	ql.PushArguments()
 }
 
@@ -71,27 +78,39 @@ func (ql *QueryListener) ExitHandler(ctx *HandlerContext) {
 		handler ParseHandler
 		found   bool
 		result  interface{}
+		err     error
 	)
+	if ql.Error != nil {
+		return
+	}
 
-	if handler, found = handlers[ctx.ID().GetText()]; !found {
+	if handler, found = handlersMap[ctx.ID().GetText()]; !found {
 
 	}
 
-	ql.Arguments["$metric"] = ql.Metric
+	ql.Arguments["_$metric"] = ql.Metric
 
-	result, _ = handler(ql.Context, ql.Arguments)
+	if result, err = handler(ql.Context, ql.Arguments); err != nil {
+		ql.Error = err
+	}
 
 	ql.PopArguments()
-	ql.Arguments["previous.handler.result"] = result
+	ql.Arguments["_$previous.handler.result"] = result
 }
 
 func (ql *QueryListener) PushArguments() {
+	if ql.Error != nil {
+		return
+	}
 	arguments := map[string]interface{}{}
 	ql.ArgumentsStack = append(ql.ArgumentsStack, arguments)
 	ql.Arguments = arguments
 }
 
 func (ql *QueryListener) PopArguments() {
+	if ql.Error != nil {
+		return
+	}
 	size := len(ql.ArgumentsStack)
 	if size > 1 {
 		ql.ArgumentsStack = ql.ArgumentsStack[:size-1]
@@ -105,7 +124,8 @@ func (ql *QueryListener) PopArguments() {
 func (ql *QueryListener) Result() *MetricQueryItemResult {
 	return &MetricQueryItemResult{
 		Metric: nil,
-		Value:  ql.Arguments["previous.handler.result"],
+		Error:  ql.Error,
+		Value:  ql.Arguments["_$previous.handler.result"],
 	}
 }
 
@@ -115,7 +135,7 @@ func NewQueryListener(context Context, metric *MetricQueryItem) *QueryListener {
 		Metric:  metric,
 		ArgumentsStack: []map[string]interface{}{
 			{
-				"previous.handler.result": nil,
+				"_$previous.handler.result": nil,
 			},
 		},
 	}
