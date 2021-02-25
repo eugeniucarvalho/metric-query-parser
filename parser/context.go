@@ -20,6 +20,9 @@ func (ctx *context) Copy() Context {
 	newContext := NewContext()
 	newContext.Metrics = ctx.Metrics
 	newContext.Handlers = ctx.Handlers
+	for prop, value := range ctx.values {
+		newContext.values[prop] = value
+	}
 	return newContext
 }
 
