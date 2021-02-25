@@ -51,6 +51,12 @@ func (s *BaseGrammarListener) EnterValue(ctx *ValueContext) {}
 // ExitValue is called when production value is exited.
 func (s *BaseGrammarListener) ExitValue(ctx *ValueContext) {}
 
+// EnterTypeHandler is called when production typeHandler is entered.
+func (s *BaseGrammarListener) EnterTypeHandler(ctx *TypeHandlerContext) {}
+
+// ExitTypeHandler is called when production typeHandler is exited.
+func (s *BaseGrammarListener) ExitTypeHandler(ctx *TypeHandlerContext) {}
+
 // EnterTypeString is called when production typeString is entered.
 func (s *BaseGrammarListener) EnterTypeString(ctx *TypeStringContext) {}
 

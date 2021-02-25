@@ -23,6 +23,9 @@ type GrammarListener interface {
 	// EnterValue is called when entering the value production.
 	EnterValue(c *ValueContext)
 
+	// EnterTypeHandler is called when entering the typeHandler production.
+	EnterTypeHandler(c *TypeHandlerContext)
+
 	// EnterTypeString is called when entering the typeString production.
 	EnterTypeString(c *TypeStringContext)
 
@@ -52,6 +55,9 @@ type GrammarListener interface {
 
 	// ExitValue is called when exiting the value production.
 	ExitValue(c *ValueContext)
+
+	// ExitTypeHandler is called when exiting the typeHandler production.
+	ExitTypeHandler(c *TypeHandlerContext)
 
 	// ExitTypeString is called when exiting the typeString production.
 	ExitTypeString(c *TypeStringContext)

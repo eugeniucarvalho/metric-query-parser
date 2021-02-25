@@ -8,14 +8,21 @@ type Handlers = map[string]ParseHandler
 var (
 	handlersMap = map[string]ParseHandler{
 		"from":          from,
-		"sort":          sort,
-		"count":         count,
-		"match":         match,
-		"query":         query,
-		"sort.default":  sort,
-		"count.default": count,
-		"match.default": match,
-		"query.default": query,
+		"sort":          proxyHandlerFactory("sort"),
+		"count":         proxyHandlerFactory("count"),
+		"match":         proxyHandlerFactory("match"),
+		"query":         proxyHandlerFactory("query"),
+		"group":         proxyHandlerFactory("group"),
+		"limit":         proxyHandlerFactory("limit"),
+		"skip":          proxyHandlerFactory("skip"),
+		"lookup":        proxyHandlerFactory("lookup"),
+		"sort.default":  proxyHandlerFactory("sort"),
+		"count.default": proxyHandlerFactory("count"),
+		"match.default": proxyHandlerFactory("match"),
+		"query.default": proxyHandlerFactory("query"),
+		"group.default": proxyHandlerFactory("group"),
+		"limit.default": proxyHandlerFactory("limit"),
+		"skip.default":  proxyHandlerFactory("skip"),
 	}
 
 	UndefinedHandlerError = func(name string) error {
@@ -79,15 +86,8 @@ func from(context Context, props map[string]interface{}) (interface{}, error) {
 	return handler(context, props)
 }
 
-func sort(context Context, props map[string]interface{}) (interface{}, error) {
-	return handlerByContextType("sort", context, props)
-}
-func count(context Context, props map[string]interface{}) (interface{}, error) {
-	return handlerByContextType("count", context, props)
-}
-func match(context Context, props map[string]interface{}) (interface{}, error) {
-	return handlerByContextType("match", context, props)
-}
-func query(context Context, props map[string]interface{}) (interface{}, error) {
-	return handlerByContextType("query", context, props)
+func proxyHandlerFactory(prefix string) func(context Context, props map[string]interface{}) (interface{}, error) {
+	return func(context Context, props map[string]interface{}) (interface{}, error) {
+		return handlerByContextType(prefix, context, props)
+	}
 }
